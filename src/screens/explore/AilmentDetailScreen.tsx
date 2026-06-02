@@ -9,6 +9,8 @@ import { SafetyBanner } from '../../components/molecules/SafetyBanner';
 import { useProfileStore } from '../../store/useProfileStore';
 import { buildSession } from '../../utils/buildSession';
 import { poseName } from '../../utils/poseNameUtils';
+import { useAgeTheme } from '../../features/age-adaptive/useAgeTheme';
+import { useAgeContent } from '../../features/age-adaptive/useAgeContent';
 
 type Nav = NativeStackNavigationProp<any>;
 type Route = RouteProp<{ AilmentDetail: { ailmentId: string } }, 'AilmentDetail'>;
@@ -26,14 +28,11 @@ export default function AilmentDetailScreen() {
   );
 
   const tier = profile?.tier ?? 'explorer';
-  const ageRange = profile?.ageRange ?? '7-9';
 
-  const filteredPoses = useMemo(() => {
-    if (!ailment) return [];
-    return ailment.poses.filter(
-      (p) => p.ageSuitability === 'both' || p.ageSuitability === ageRange
-    );
-  }, [ailment, ageRange]);
+  const { bodyFontSize, instructionFontSize } = useAgeTheme();
+  const { filterPosesForTier, getPoseName } = useAgeContent();
+
+  const filteredPoses = useMemo(() => filterPosesForTier(ailment?.poses ?? []), [ailment, filterPosesForTier]);
 
   const estimatedMins = Math.round((filteredPoses.length * 2.5));
   const difficulty = tier === 'seedling' ? 'Easy' : tier === 'yogi' ? 'Full' : 'Moderate';
@@ -88,7 +87,7 @@ export default function AilmentDetailScreen() {
         {/* Did you know */}
         <View style={styles.infoCard}>
           <Text style={styles.infoLabel}>💡 Did you know?</Text>
-          <Text style={styles.infoText}>{ailment.shortDescription}</Text>
+          <Text style={[styles.infoText, { fontSize: bodyFontSize }]}>{ailment.shortDescription}</Text>
         </View>
 
         {/* Poses */}
@@ -99,7 +98,7 @@ export default function AilmentDetailScreen() {
               key={pose.id}
               pose={pose}
               ageTier={tier}
-              displayName={poseName(pose, tier)}
+              displayName={getPoseName(pose)}
             />
           ))}
         </ScrollView>
