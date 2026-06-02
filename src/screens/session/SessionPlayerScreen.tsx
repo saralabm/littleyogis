@@ -13,6 +13,7 @@ import { ContraindicationAlert } from '../../components/session/Contraindication
 import { PoseInstructions } from '../../components/session/PoseInstructions';
 import { ProgressBar } from '../../components/atoms/ProgressBar';
 import { poseName } from '../../utils/poseNameUtils';
+import { useAgeTheme } from '../../features/age-adaptive/useAgeTheme';
 import type { Session } from '../../types';
 
 type Nav = NativeStackNavigationProp<any>;
@@ -31,6 +32,7 @@ export default function SessionPlayerScreen() {
 
   const profile = useProfileStore((s) => s.profile);
   const tier = profile?.tier ?? 'explorer';
+  const { timerStyle, autoAdvanceSession, instructionFontSize } = useAgeTheme();
 
   const { startSession, endSession } = useSessionStore();
   const recordCompletion = useProgressStore((s) => s.recordCompletion);
@@ -84,6 +86,13 @@ export default function SessionPlayerScreen() {
       }
     }
   }, [currentStepIndex]);
+
+  // Auto-advance for seedling tier
+  useEffect(() => {
+    if (autoAdvanceSession && secondsRemaining === 0 && !isComplete) {
+      skipForward();
+    }
+  }, [secondsRemaining, autoAdvanceSession]);
 
   function handleQuit() {
     Alert.alert('End Session?', 'Your progress will be lost.', [
@@ -155,7 +164,7 @@ export default function SessionPlayerScreen() {
 
         {/* Breathing cue */}
         <View style={styles.cueBanner}>
-          <Text style={styles.cueText} accessibilityLiveRegion={secondsRemaining <= 5 ? 'assertive' : 'none'}>
+          <Text style={[styles.cueText, { fontSize: instructionFontSize }]} accessibilityLiveRegion={secondsRemaining <= 5 ? 'assertive' : 'none'}>
             {isTransition ? currentStep?.instructionText : `${secondsRemaining}s remaining`}
           </Text>
         </View>
