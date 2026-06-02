@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProfileStore } from '../../store/useProfileStore';
 import { useProgressStore } from '../../store/useProgressStore';
+import { useAgeTheme } from '../../features/age-adaptive/useAgeTheme';
 
 type Nav = NativeStackNavigationProp<any>;
 
@@ -32,6 +33,7 @@ export default function HomeScreen() {
   const streak = useProgressStore((s) => s.streakDays);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [showPinGate, setShowPinGate] = useState(false);
+  const { backgroundColor, showStreak, showYogi, yogiSize, bodyFontSize } = useAgeTheme();
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -60,12 +62,12 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[styles.container, { backgroundColor }]} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.greeting}>{greeting}, {name}! 🌤️</Text>
-          {streak > 0 && (
+          {showStreak && streak > 0 && (
             <View style={styles.streakBadge}>
               <Text style={styles.streakText}>🔥 {streak}</Text>
             </View>
@@ -83,12 +85,14 @@ export default function HomeScreen() {
       </View>
 
       {/* Yogi placeholder */}
-      <View style={styles.yogiPlaceholder}>
-        <Text style={styles.yogiEmoji}>🧘</Text>
-      </View>
+      {showYogi && (
+        <View style={[styles.yogiPlaceholder, { width: yogiSize, height: yogiSize, borderRadius: yogiSize / 2 }]}>
+          <Text style={[styles.yogiEmoji, { fontSize: yogiSize * 0.48 }]}>🧘</Text>
+        </View>
+      )}
 
       {/* Mood selector */}
-      <Text style={styles.sectionTitle}>How are you feeling today?</Text>
+      <Text style={[styles.sectionTitle, { fontSize: bodyFontSize + 2 }]}>How are you feeling today?</Text>
       <View style={styles.moodRow}>
         {MOODS.map((mood) => (
           <Pressable
@@ -107,7 +111,7 @@ export default function HomeScreen() {
 
       {/* Divider */}
       <View style={styles.divider} />
-      <Text style={styles.sectionTitle}>Does something feel sore?</Text>
+      <Text style={[styles.sectionTitle, { fontSize: bodyFontSize + 2 }]}>Does something feel sore?</Text>
 
       {/* Body map */}
       <View style={styles.bodyMap}>
