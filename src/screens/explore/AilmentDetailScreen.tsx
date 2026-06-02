@@ -1,6 +1,162 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp, RouteProp } from '@react-navigation/native-stack';
+import { getAilmentById, getBreathingById } from '../../data/index';
+import { PoseCard } from '../../components/molecules/PoseCard';
+import { BreathingCard } from '../../components/molecules/BreathingCard';
+import { SafetyBanner } from '../../components/molecules/SafetyBanner';
+import { useProfileStore } from '../../store/useProfileStore';
+import { buildSession } from '../../utils/buildSession';
+import { poseName } from '../../utils/poseNameUtils';
+
+type Nav = NativeStackNavigationProp<any>;
+type Route = RouteProp<{ AilmentDetail: { ailmentId: string } }, 'AilmentDetail'>;
+
 export default function AilmentDetailScreen() {
-  return <View style={styles.c}><Text style={styles.t}>Ailment Detail</Text></View>;
+  const navigation = useNavigation<Nav>();
+  const route = useRoute<Route>();
+  const { ailmentId } = route.params;
+  const profile = useProfileStore((s) => s.profile);
+
+  const ailment = useMemo(() => getAilmentById(ailmentId), [ailmentId]);
+  const recommendedBreathing = useMemo(
+    () => ailment?.recommendedBreathingIds[0] ? getBreathingById(ailment.recommendedBreathingIds[0]) : null,
+    [ailment]
+  );
+
+  const tier = profile?.tier ?? 'explorer';
+  const ageRange = profile?.ageRange ?? '7-9';
+
+  const filteredPoses = useMemo(() => {
+    if (!ailment) return [];
+    return ailment.poses.filter(
+      (p) => p.ageSuitability === 'both' || p.ageSuitability === ageRange
+    );
+  }, [ailment, ageRange]);
+
+  const estimatedMins = Math.round((filteredPoses.length * 2.5));
+  const difficulty = tier === 'seedling' ? 'Easy' : tier === 'yogi' ? 'Full' : 'Moderate';
+
+  function handleStartSession() {
+    if (!ailment || !profile) return;
+    const session = buildSession(ailment, profile);
+    navigation.navigate('SessionPlayer', { session });
+  }
+
+  if (!ailment) {
+    return (
+      <View style={styles.notFound}>
+        <Text style={styles.notFoundText}>Ailment not found.</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Go back">
+          <Text style={styles.backLink}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Back button */}
+      <TouchableOpacity
+        style={styles.backBtn}
+        onPress={() => navigation.goBack()}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Text style={styles.backBtnText}>‹ Back</Text>
+      </TouchableOpacity>
+
+      {/* Hero */}
+      <View style={[styles.hero, { backgroundColor: ailment.accentColor }]}>
+        <Text style={styles.heroEmoji}>{ailment.emoji}</Text>
+      </View>
+
+      <View style={styles.content}>
+        {/* Title */}
+        <Text style={styles.title}>{ailment.childFriendlyName}</Text>
+        <Text style={styles.subtitle}>{ailment.displayName}</Text>
+
+        {/* Chips */}
+        <View style={styles.chips}>
+          <View style={styles.chip}><Text style={styles.chipText}>⏱ {estimatedMins}min</Text></View>
+          <View style={styles.chip}><Text style={styles.chipText}>🧘 {filteredPoses.length} poses</Text></View>
+          <View style={styles.chip}><Text style={styles.chipText}>{difficulty}</Text></View>
+        </View>
+
+        {/* Did you know */}
+        <View style={styles.infoCard}>
+          <Text style={styles.infoLabel}>💡 Did you know?</Text>
+          <Text style={styles.infoText}>{ailment.shortDescription}</Text>
+        </View>
+
+        {/* Poses */}
+        <Text style={styles.sectionLabel}>Today's Poses</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.poseScroll}>
+          {filteredPoses.map((pose) => (
+            <PoseCard
+              key={pose.id}
+              pose={pose}
+              ageTier={tier}
+              displayName={poseName(pose, tier)}
+            />
+          ))}
+        </ScrollView>
+
+        {/* Recommended breathing */}
+        {recommendedBreathing && (
+          <>
+            <Text style={styles.sectionLabel}>Breathing to Try</Text>
+            <BreathingCard
+              exercise={recommendedBreathing}
+              onPress={() => navigation.navigate('Breathe', { screen: 'BreathingPlayer', params: { exerciseId: recommendedBreathing.id } })}
+            />
+          </>
+        )}
+
+        {/* Safety banner */}
+        {ailment.safetyNote && (
+          <SafetyBanner
+            message={ailment.safetyNote}
+            collapsible={!ailment.alwaysShowSafetyBanner}
+          />
+        )}
+
+        {/* Start session CTA */}
+        <TouchableOpacity
+          style={styles.startBtn}
+          onPress={handleStartSession}
+          accessibilityRole="button"
+          accessibilityLabel={`Start ${ailment.childFriendlyName} session`}
+        >
+          <Text style={styles.startBtnText}>▶  Start Session ({estimatedMins} min)</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
 }
-const styles = StyleSheet.create({ c: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFBF2' }, t: { fontSize: 24, fontWeight: '700', color: '#1C1C2E' } });
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FFFBF2' },
+  notFound: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
+  notFoundText: { fontSize: 18, color: '#1C1C2E' },
+  backLink: { fontSize: 16, color: '#42A5F5', textDecorationLine: 'underline' },
+  backBtn: { position: 'absolute', top: 16, left: 16, zIndex: 10, padding: 8 },
+  backBtnText: { fontSize: 18, color: '#FFFFFF', fontWeight: '600' },
+  hero: { height: 200, alignItems: 'center', justifyContent: 'center' },
+  heroEmoji: { fontSize: 80 },
+  content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 48 },
+  title: { fontSize: 28, fontWeight: '700', color: '#1C1C2E', marginBottom: 4 },
+  subtitle: { fontSize: 16, color: '#7B7B99', marginBottom: 12 },
+  chips: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 16 },
+  chip: { backgroundColor: '#F0F0F8', borderRadius: 100, paddingHorizontal: 12, paddingVertical: 6 },
+  chipText: { fontSize: 13, fontWeight: '600', color: '#3D3D56' },
+  infoCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
+  infoLabel: { fontSize: 13, fontWeight: '700', color: '#F9A825', marginBottom: 6 },
+  infoText: { fontSize: 16, color: '#3D3D56', lineHeight: 24 },
+  sectionLabel: { fontSize: 18, fontWeight: '700', color: '#1C1C2E', marginBottom: 8, marginTop: 8 },
+  poseScroll: { gap: 12, paddingBottom: 4, paddingRight: 4 },
+  startBtn: { backgroundColor: '#F9A825', borderRadius: 100, paddingVertical: 18, alignItems: 'center', marginTop: 24, minHeight: 56, justifyContent: 'center', shadowColor: '#F9A825', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 4 },
+  startBtnText: { fontSize: 18, fontWeight: '700', color: '#1C1C2E' },
+});
