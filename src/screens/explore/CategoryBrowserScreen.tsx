@@ -5,13 +5,14 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ailments } from '../../data/index';
 import { AilmentCard } from '../../components/molecules/AilmentCard';
 import { useProfileStore } from '../../store/useProfileStore';
+import { useAgeTheme } from '../../features/age-adaptive/useAgeTheme';
 
 type Nav = NativeStackNavigationProp<any>;
 
 export default function CategoryBrowserScreen() {
   const navigation = useNavigation<Nav>();
   const tier = useProfileStore((s) => s.profile?.tier ?? 'explorer');
-  const accentColor = tier === 'seedling' ? '#FFB300' : tier === 'yogi' ? '#3949AB' : '#558B2F';
+  const { accentColor } = useAgeTheme();
   const [category, setCategory] = useState<'physical' | 'emotional'>('physical');
 
   const filtered = useMemo(
