@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -16,7 +16,7 @@ const TIERS: { tier: AgeTier; label: string; range: string; accent: string }[] =
   { tier: 'yogi', label: 'Warrior', range: '10–12', accent: '#3949AB' },
 ];
 
-const DISCLAIMER_BODY = `LittleYogi provides general wellness movement and breathing content for educational and recreational use only. It is NOT a substitute for medical advice, diagnosis, or treatment.
+const DISCLAIMER_BODY = `Healing Stars provides general wellness movement and breathing content for educational and recreational use only. It is NOT a substitute for medical advice, diagnosis, or treatment.
 
 Please consult your child's doctor before beginning if your child has asthma, chronic respiratory conditions, recent surgery, or any diagnosed condition.
 
@@ -28,11 +28,18 @@ export default function ProfileScreen() {
   const navigation = useNavigation<Nav>();
   const profile = useProfileStore((s) => s.profile);
   const updateTier = useProfileStore((s) => s.updateTier);
+  const updateName = useProfileStore((s) => s.updateName);
   const { completedSessions, streakDays } = useProgressStore();
 
   const [showPinGate, setShowPinGate] = useState(false);
   const [pendingTier, setPendingTier] = useState<AgeTier | null>(null);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
+
+  // Name editing state
+  const [editingName, setEditingName] = useState(false);
+  const [pendingNameEdit, setPendingNameEdit] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const originalName = useRef('');
 
   function handleTierPress(tier: AgeTier) {
     if (tier === profile?.tier) return;
@@ -40,12 +47,38 @@ export default function ProfileScreen() {
     setShowPinGate(true);
   }
 
+  function handleNameLabelPress() {
+    originalName.current = profile?.preferredCharacterName ?? '';
+    setDraftName(originalName.current);
+    setPendingNameEdit(true);
+    setShowPinGate(true);
+  }
+
+  function commitNameEdit() {
+    const trimmed = draftName.trim();
+    if (trimmed.length === 0) {
+      setDraftName(originalName.current);
+    } else {
+      updateName(trimmed);
+    }
+    setEditingName(false);
+  }
+
   function handlePinSuccess() {
     if (pendingTier) {
       updateTier(pendingTier);
+      setPendingTier(null);
+    } else if (pendingNameEdit) {
+      setPendingNameEdit(false);
+      setEditingName(true);
     }
     setShowPinGate(false);
+  }
+
+  function handlePinCancel() {
+    setShowPinGate(false);
     setPendingTier(null);
+    setPendingNameEdit(false);
   }
 
   return (
@@ -55,7 +88,29 @@ export default function ProfileScreen() {
         <View style={styles.avatar}>
           <Text style={styles.avatarEmoji}>🧘</Text>
         </View>
-        <Text style={styles.name}>Hi, {profile?.preferredCharacterName ?? 'there'}! 👋</Text>
+        {editingName ? (
+          <TextInput
+            style={styles.nameInput}
+            value={draftName}
+            onChangeText={setDraftName}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={commitNameEdit}
+            onBlur={commitNameEdit}
+            accessibilityLabel="Edit child name"
+          />
+        ) : (
+          <TouchableOpacity
+            onPress={handleNameLabelPress}
+            style={styles.nameRow}
+            accessibilityRole="button"
+            accessibilityLabel="Edit child name"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.name}>Hi, {profile?.preferredCharacterName ?? 'there'}! 👋</Text>
+            <Text style={styles.pencil}>✏️</Text>
+          </TouchableOpacity>
+        )}
         <Text style={styles.tierLabel}>
           {TIERS.find((t) => t.tier === profile?.tier)?.label ?? 'Explorer'} · Ages{' '}
           {TIERS.find((t) => t.tier === profile?.tier)?.range ?? '7–9'}
@@ -65,8 +120,14 @@ export default function ProfileScreen() {
       {/* Progress */}
       <Text style={styles.sectionLabel}>My Progress</Text>
       <View style={styles.card}>
-        <Text style={styles.progressRow}>🔥 {streakDays}-day streak</Text>
-        <Text style={styles.progressRow}>✅ {completedSessions.length} sessions complete</Text>
+        {completedSessions.length === 0 ? (
+          <Text style={styles.emptyProgress}>🌱 No sessions yet — let's start your first one!</Text>
+        ) : (
+          <>
+            <Text style={styles.progressRow}>🔥 {streakDays}-day streak</Text>
+            <Text style={styles.progressRow}>✅ {completedSessions.length} sessions complete</Text>
+          </>
+        )}
       </View>
 
       {/* Age tier selector */}
@@ -109,7 +170,7 @@ export default function ProfileScreen() {
       {showPinGate && (
         <PinGate
           onSuccess={handlePinSuccess}
-          onCancel={() => { setShowPinGate(false); setPendingTier(null); }}
+          onCancel={handlePinCancel}
         />
       )}
 
@@ -131,8 +192,12 @@ const styles = StyleSheet.create({
   avatarSection: { alignItems: 'center', paddingTop: 32, paddingBottom: 16 },
   avatar: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#F9A825', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   avatarEmoji: { fontSize: 48 },
-  name: { fontSize: 24, fontWeight: '700', color: '#1C1C2E', marginBottom: 4 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  name: { fontSize: 24, fontWeight: '700', color: '#1C1C2E' },
+  pencil: { fontSize: 16 },
+  nameInput: { fontSize: 24, fontWeight: '700', color: '#1C1C2E', textAlign: 'center', marginBottom: 4, minWidth: 180, borderBottomWidth: 2, borderBottomColor: '#F9A825', paddingBottom: 2 },
   tierLabel: { fontSize: 14, color: '#7B7B99' },
+  emptyProgress: { fontSize: 15, color: '#7B7B99', textAlign: 'center', padding: 8 },
   sectionLabel: { fontSize: 18, fontWeight: '700', color: '#1C1C2E', marginTop: 20, marginBottom: 10 },
   card: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, gap: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
   progressRow: { fontSize: 16, fontWeight: '600', color: '#1C1C2E' },

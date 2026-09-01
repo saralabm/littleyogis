@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STORAGE_KEY = 'littleyogi:seen_disclaimers';
+const STORAGE_KEY = 'healingstars:seen_disclaimers';
 export const ALWAYS_SHOW_DISCLAIMER_AILMENTS = ['asthma', 'weight-support'];
 
 async function getSeenSet(): Promise<Set<string>> {

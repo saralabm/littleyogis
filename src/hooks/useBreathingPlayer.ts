@@ -11,6 +11,7 @@ interface BreathingPlayerState {
   isComplete: boolean;
   pauseResume: () => void;
   restart: () => void;
+  skipRound: () => void;
 }
 
 export function useBreathingPlayer(exercise: BreathingExercise): BreathingPlayerState {
@@ -109,6 +110,30 @@ export function useBreathingPlayer(exercise: BreathingExercise): BreathingPlayer
     startFresh();
   }, [clearTimers, startFresh]);
 
+  const skipRound = useCallback(() => {
+    if (isCompleteRef.current) return;
+    clearTimers();
+    const nextRound = roundRef.current + 1;
+    if (nextRound > exercise.defaultCycles) {
+      isCompleteRef.current = true;
+      isPausedRef.current = false;
+      setIsComplete(true);
+      setIsPaused(false);
+      setProgress(1);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      return;
+    }
+    roundRef.current = nextRound;
+    phaseIndexRef.current = 0;
+    isPausedRef.current = false;
+    setRound(nextRound);
+    setPhaseIndex(0);
+    setIsPaused(false);
+    setProgress(0);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    scheduleNextPhase();
+  }, [exercise, clearTimers, scheduleNextPhase]);
+
   return {
     currentPhase: exercise.cycle[phaseIndex],
     currentRound: round,
@@ -118,5 +143,6 @@ export function useBreathingPlayer(exercise: BreathingExercise): BreathingPlayer
     isComplete,
     pauseResume,
     restart,
+    skipRound,
   };
 }

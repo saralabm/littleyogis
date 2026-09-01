@@ -8,6 +8,7 @@ interface ProgressState {
   streakDays: number;
   lastPracticedAt: number | null;
   recordCompletion: (record: CompletedSession) => void;
+  updateSessionMoodRating: (sessionId: string, rating: number) => void;
   calculateStreak: () => void;
 }
 
@@ -55,12 +56,19 @@ export const useProgressStore = create<ProgressState>()(
         });
       },
 
+      updateSessionMoodRating: (sessionId, rating) => {
+        const updated = get().completedSessions.map((s) =>
+          s.id === sessionId ? { ...s, moodRating: rating } : s,
+        );
+        set({ completedSessions: updated });
+      },
+
       calculateStreak: () => {
         set({ streakDays: computeStreak(get().completedSessions) });
       },
     }),
     {
-      name: 'littleyogi-progress',
+      name: 'healingstars-progress',
       storage: createJSONStorage(() => AsyncStorage),
     },
   ),

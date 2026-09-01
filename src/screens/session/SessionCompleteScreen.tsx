@@ -19,7 +19,7 @@ export default function SessionCompleteScreen() {
   const { session, stepsCompleted } = route.params;
 
   const profile = useProfileStore((s) => s.profile);
-  const { streakDays } = useProgressStore();
+  const { streakDays, updateSessionMoodRating } = useProgressStore();
   const childName = profile?.preferredCharacterName ?? 'you';
 
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
@@ -122,7 +122,10 @@ export default function SessionCompleteScreen() {
               <TouchableOpacity
                 key={i}
                 style={[styles.moodBtn, selectedMood === i && styles.moodBtnSelected]}
-                onPress={() => setSelectedMood(i)}
+                onPress={() => {
+                  setSelectedMood(i);
+                  updateSessionMoodRating(session.id, i);
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={`Rate session: ${MOOD_LABELS[i]}`}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

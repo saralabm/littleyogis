@@ -16,7 +16,7 @@ function BreathingPlayerContent({ navigation, exerciseId }: { navigation: Nav; e
   const exercise = getBreathingById(exerciseId)!;
   const {
     currentPhase, currentRound, totalRounds, progress,
-    isPaused, isComplete, pauseResume, restart,
+    isPaused, isComplete, pauseResume, restart, skipRound,
   } = useBreathingPlayer(exercise);
 
   const [countCue, setCountCue] = useState(1);
@@ -99,7 +99,7 @@ function BreathingPlayerContent({ navigation, exerciseId }: { navigation: Nav; e
           >
             <Text style={styles.pauseIcon}>{isPaused ? '▶' : '⏸'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.controlBtn} onPress={restart} accessibilityRole="button" accessibilityLabel="Next round" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity style={styles.controlBtn} onPress={skipRound} accessibilityRole="button" accessibilityLabel="Skip to next round" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Text style={styles.controlIcon}>⟫</Text>
           </TouchableOpacity>
         </View>

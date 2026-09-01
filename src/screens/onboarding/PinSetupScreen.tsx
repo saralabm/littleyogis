@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar } fro
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProfileStore, TIER_CONFIG } from '../../store/useProfileStore';
-import { onboardingDraft } from './onboardingDraft';
+import { loadDraft, clearDraft } from './onboardingDraft';
 import type { AgeTier, AgeProfile } from '../../types';
 
 type Nav = NativeStackNavigationProp<any>;
@@ -22,18 +22,23 @@ export default function PinSetupScreen() {
     setDigits(next);
     if (next.length === 4) {
       const pin = next.join('');
-      const tier = (onboardingDraft.tier ?? 'explorer') as AgeTier;
-      const profile: AgeProfile = {
-        tier,
-        ...TIER_CONFIG[tier],
-        preferredCharacterName: onboardingDraft.childName ?? '',
-        yogiColor: onboardingDraft.yogiColor ?? '#F9A825',
-        hasAcceptedDisclaimer: true,
-        disclaimerAcceptedAt: Date.now(),
-        parentPin: pin,
-      };
-      setProfile(profile);
-      setTimeout(() => navigation.reset({ index: 0, routes: [{ name: 'Main' }] }), 250);
+      loadDraft().then((draft) => {
+        const tier = (draft.tier ?? 'explorer') as AgeTier;
+        const profile: AgeProfile = {
+          tier,
+          ...TIER_CONFIG[tier],
+          preferredCharacterName: draft.childName ?? '',
+          yogiColor: draft.yogiColor ?? '#F9A825',
+          hasAcceptedDisclaimer: true,
+          disclaimerAcceptedAt: Date.now(),
+          parentPin: pin,
+        };
+        setProfile(profile);
+        clearDraft().catch(() => {});
+        setTimeout(() => navigation.reset({ index: 0, routes: [{ name: 'Main' }] }), 250);
+      }).catch(() => {
+        navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      });
     }
   }
 

@@ -4,6 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { breathingExercises } from '../../data/index';
 import { BreathingCard } from '../../components/molecules/BreathingCard';
+import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
 
 type Nav = NativeStackNavigationProp<any>;
 type FilterKey = 'calm' | 'energy' | 'sleep' | 'focus';
@@ -70,15 +72,15 @@ export default function BreathingLibraryScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFBF2' },
-  header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
-  title: { fontSize: 28, fontWeight: '700', color: '#1C1C2E' },
-  subtitle: { fontSize: 16, color: '#7B7B99', marginTop: 4 },
-  filtersRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20, marginBottom: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(28,28,46,0.08)' },
-  chipActive: { backgroundColor: '#1C1C2E' },
-  chipText: { fontSize: 14, fontWeight: '600', color: '#1C1C2E' },
-  chipTextActive: { color: '#FFFBF2' },
-  grid: { paddingHorizontal: 20, paddingBottom: 32, gap: 10 },
+  safe: { flex: 1, backgroundColor: colors.bg.primary },
+  header: { paddingHorizontal: spacing.screenPaddingH, paddingTop: 16, paddingBottom: 8 },
+  title: { fontSize: 28, fontWeight: '700', color: colors.text.primary },
+  subtitle: { fontSize: 16, color: colors.text.muted, marginTop: 4 },
+  filtersRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: spacing.screenPaddingH, marginBottom: 8 },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: spacing.buttonRadius, backgroundColor: 'rgba(28,28,46,0.08)' },
+  chipActive: { backgroundColor: colors.text.primary },
+  chipText: { fontSize: 14, fontWeight: '600', color: colors.text.primary },
+  chipTextActive: { color: colors.bg.primary },
+  grid: { paddingHorizontal: spacing.screenPaddingH, paddingBottom: 32, gap: 10 },
   row: { gap: 10 },
 });

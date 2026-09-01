@@ -22,6 +22,7 @@ interface ProfileState {
   profile: AgeProfile | null;
   setProfile: (profile: AgeProfile) => void;
   updateTier: (tier: AgeTier) => void;
+  updateName: (name: string) => void;
   acceptDisclaimer: () => void;
   setPin: (pin: string) => void;
   resetProfile: () => void;
@@ -38,6 +39,12 @@ export const useProfileStore = create<ProfileState>()(
         const existing = get().profile;
         if (!existing) return;
         set({ profile: { ...existing, tier, ...TIER_CONFIG[tier] } });
+      },
+
+      updateName: (name) => {
+        const existing = get().profile;
+        if (!existing) return;
+        set({ profile: { ...existing, preferredCharacterName: name } });
       },
 
       acceptDisclaimer: () => {
@@ -61,7 +68,7 @@ export const useProfileStore = create<ProfileState>()(
       resetProfile: () => set({ profile: null }),
     }),
     {
-      name: 'littleyogi-profile',
+      name: 'healingstars-profile',
       storage: createJSONStorage(() => secureStoreAdapter),
     },
   ),

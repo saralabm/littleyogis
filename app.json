@@ -1,28 +1,39 @@
 {
   "expo": {
-    "name": "LittleYogiWellness",
-    "slug": "LittleYogiWellness",
+    "name": "Healing Stars",
+    "slug": "healing-stars",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFBF2"
+    },
+    "assetBundlePatterns": [
+      "assets/**/*",
+      "src/assets/**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.healingstars.wellness",
+      "infoPlist": {}
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFBF2"
       },
-      "predictiveBackGestureEnabled": false
+      "package": "com.healingstars.wellness",
+      "permissions": []
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      ["expo-av", { "microphonePermission": false }]
     ]
   }
 }

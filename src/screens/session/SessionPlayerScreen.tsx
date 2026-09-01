@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, Alert } from 'react-native';
+import { Audio } from 'expo-av';
+import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp, RouteProp } from '@react-navigation/native-stack';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -14,7 +15,9 @@ import { PoseInstructions } from '../../components/session/PoseInstructions';
 import { ProgressBar } from '../../components/atoms/ProgressBar';
 import { poseName } from '../../utils/poseNameUtils';
 import { useAgeTheme } from '../../features/age-adaptive/useAgeTheme';
+import { usePoseNarration } from '../../hooks/usePoseNarration';
 import type { Session } from '../../types';
+import { getAilmentById } from '../../data';
 
 type Nav = NativeStackNavigationProp<any>;
 type Route = RouteProp<{ SessionPlayer: { session: Session } }, 'SessionPlayer'>;
@@ -51,16 +54,37 @@ export default function SessionPlayerScreen() {
   const seenContraindications = useRef(new Set<string>());
   const [showContra, setShowContra] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
+  const { narratePose, narrateTransition, stop } = usePoseNarration(audioEnabled);
+  const soundRef = useRef<Audio.Sound | null>(null);
   const isComplete = currentStepIndex >= totalSteps && totalSteps > 0;
 
-  // Start session on mount
+  // Start session on mount — play start bell if audio is enabled
   useEffect(() => {
     startSession(session);
+    if (audioEnabled) {
+      Audio.Sound.createAsync(require('../../assets/audio/bell_start.mp3'))
+        .then(({ sound }) => {
+          soundRef.current = sound;
+          sound.playAsync().then(() => sound.unloadAsync()).catch(() => {});
+        })
+        .catch(() => {});
+    }
+    return () => {
+      soundRef.current?.unloadAsync().catch(() => {});
+      stop();
+    };
   }, []);
 
-  // Navigate to complete when done
+  // Navigate to complete when done — play end bell first
   useEffect(() => {
     if (isComplete) {
+      if (audioEnabled) {
+        Audio.Sound.createAsync(require('../../assets/audio/bell_end.mp3'))
+          .then(({ sound }) => {
+            sound.playAsync().then(() => sound.unloadAsync()).catch(() => {});
+          })
+          .catch(() => {});
+      }
       recordCompletion({
         sessionId: session.id,
         ailmentId: session.ailmentId,
@@ -87,6 +111,23 @@ export default function SessionPlayerScreen() {
     }
   }, [currentStepIndex]);
 
+  // Narrate pose / transition whenever step changes OR audio is toggled on
+  useEffect(() => {
+    if (!audioEnabled) return;
+    if (currentStep?.type === 'pose' && currentStep.poseId) {
+      const narrationPose = getAilmentById(session.ailmentId)?.poses.find(
+        (p) => p.id === currentStep.poseId,
+      );
+      if (narrationPose) narratePose(narrationPose, tier);
+    } else if (currentStep?.type === 'transition') {
+      const nextStep = session.steps[currentStepIndex + 1];
+      const upcomingName = nextStep?.type === 'pose' && nextStep.poseId
+        ? nextStep.poseId.replace(/-/g, ' ')
+        : 'next pose';
+      narrateTransition(upcomingName);
+    }
+  }, [currentStepIndex, audioEnabled]);
+
   // Auto-advance for seedling tier
   useEffect(() => {
     if (autoAdvanceSession && secondsRemaining === 0 && !isComplete) {
@@ -95,9 +136,16 @@ export default function SessionPlayerScreen() {
   }, [secondsRemaining, autoAdvanceSession]);
 
   function handleQuit() {
+    if (Platform.OS === 'web') {
+      // Alert.alert is a no-op on web — quit directly
+      stop();
+      endSession();
+      navigation.goBack();
+      return;
+    }
     Alert.alert('End Session?', 'Your progress will be lost.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'End', style: 'destructive', onPress: () => { endSession(); navigation.goBack(); } },
+      { text: 'End', style: 'destructive', onPress: () => { stop(); endSession(); navigation.goBack(); } },
     ]);
   }
 
@@ -107,14 +155,9 @@ export default function SessionPlayerScreen() {
     ? nextStep.poseId.replace(/-/g, ' ')
     : 'next pose';
 
-  // Find the actual pose object from the step (simplified — uses poseId as display)
-  const currentPose = currentStep?.type === 'pose' ? {
-    ...EMPTY_POSE,
-    id: currentStep.poseId ?? '',
-    englishName: currentStep.poseId?.replace(/-/g, ' ') ?? '',
-    sanskritName: '',
-    howItHelps: currentStep.instructionText,
-  } : EMPTY_POSE;
+  const currentPose = currentStep?.type === 'pose'
+    ? (getAilmentById(session.ailmentId)?.poses.find(p => p.id === currentStep.poseId) ?? EMPTY_POSE)
+    : EMPTY_POSE;
 
   const totalDuration = currentStep?.durationSeconds ?? 1;
   const breathsTotal = Math.max(1, Math.round(totalDuration / 4));
@@ -134,7 +177,17 @@ export default function SessionPlayerScreen() {
             <Text style={styles.quitText}>✕ Quit</Text>
           </TouchableOpacity>
           <Text style={styles.stepCount}>{Math.min(currentStepIndex + 1, totalSteps)} of {totalSteps}</Text>
-          <TouchableOpacity style={styles.audioBtn} onPress={() => setAudioEnabled(!audioEnabled)} accessibilityRole="button" accessibilityLabel={audioEnabled ? 'Mute audio' : 'Unmute audio'} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity style={styles.audioBtn} onPress={() => {
+            const next = !audioEnabled;
+            setAudioEnabled(next);
+            if (next) {
+              Audio.Sound.createAsync(require('../../assets/audio/bell_start.mp3'))
+                .then(({ sound }) => {
+                  sound.playAsync().then(() => sound.unloadAsync()).catch(() => {});
+                })
+                .catch(() => {});
+            }
+          }} accessibilityRole="button" accessibilityLabel={audioEnabled ? 'Mute audio' : 'Unmute audio'} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Text style={styles.audioIcon}>{audioEnabled ? '🔊' : '🔇'}</Text>
           </TouchableOpacity>
         </View>

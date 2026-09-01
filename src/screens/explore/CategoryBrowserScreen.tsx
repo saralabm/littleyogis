@@ -6,6 +6,8 @@ import { ailments } from '../../data/index';
 import { AilmentCard } from '../../components/molecules/AilmentCard';
 import { useProfileStore } from '../../store/useProfileStore';
 import { useAgeTheme } from '../../features/age-adaptive/useAgeTheme';
+import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
 
 type Nav = NativeStackNavigationProp<any>;
 
@@ -62,11 +64,11 @@ export default function CategoryBrowserScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFBF2' },
-  tabs: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, paddingVertical: 12 },
-  tab: { flex: 1, height: 56, borderRadius: 12, borderWidth: 2, borderColor: '#F9A825', alignItems: 'center', justifyContent: 'center' },
-  tabText: { fontSize: 15, fontWeight: '700', color: '#F9A825' },
-  tabTextSelected: { color: '#FFFFFF' },
-  grid: { paddingHorizontal: 20, paddingBottom: 32 },
+  container: { flex: 1, backgroundColor: colors.bg.primary },
+  tabs: { flexDirection: 'row', gap: 12, paddingHorizontal: spacing.screenPaddingH, paddingVertical: 12 },
+  tab: { flex: 1, height: 56, borderRadius: 12, borderWidth: 2, borderColor: colors.primary.sunshine, alignItems: 'center', justifyContent: 'center' },
+  tabText: { fontSize: 15, fontWeight: '700', color: colors.primary.sunshine },
+  tabTextSelected: { color: colors.bg.card },
+  grid: { paddingHorizontal: spacing.screenPaddingH, paddingBottom: 32 },
   row: { gap: 16, marginBottom: 16 },
 });

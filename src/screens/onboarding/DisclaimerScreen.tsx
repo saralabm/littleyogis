@@ -1,12 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, NativeSyntheticEvent, NativeScrollEvent, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, NativeSyntheticEvent, NativeScrollEvent, StatusBar, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProfileStore } from '../../store/useProfileStore';
 
 type Nav = NativeStackNavigationProp<any>;
 
-const DISCLAIMER = `LittleYogi provides general wellness movement and breathing content for educational and recreational use only. It is NOT a substitute for medical advice, diagnosis, or treatment.
+const DISCLAIMER = `Healing Stars provides general wellness movement and breathing content for educational and recreational use only. It is NOT a substitute for medical advice, diagnosis, or treatment.
 
 Please consult your child's doctor before beginning if your child:
 • Has asthma or chronic respiratory conditions
@@ -21,12 +21,14 @@ By continuing you confirm you are a parent or legal guardian and accept responsi
 export default function DisclaimerScreen() {
   const navigation = useNavigation<Nav>();
   const acceptDisclaimer = useProfileStore((s) => s.acceptDisclaimer);
-  const [scrollEnabled, setScrollEnabled] = useState(false);
+  // On web, scroll events are unreliable — allow checkbox immediately
+  const [scrollEnabled, setScrollEnabled] = useState(Platform.OS === 'web');
   const [checked, setChecked] = useState(false);
   const contentHeightRef = useRef(0);
   const layoutHeightRef = useRef(0);
 
   function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    if (scrollEnabled) return;
     const offsetY = e.nativeEvent.contentOffset.y;
     const scrollable = contentHeightRef.current - layoutHeightRef.current;
     if (scrollable <= 0 || offsetY / scrollable >= 0.8) setScrollEnabled(true);
@@ -49,8 +51,14 @@ export default function DisclaimerScreen() {
         contentContainerStyle={styles.scrollContent}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        onContentSizeChange={(_, h) => { contentHeightRef.current = h; }}
-        onLayout={(e) => { layoutHeightRef.current = e.nativeEvent.layout.height; }}
+        onContentSizeChange={(_, h) => {
+          contentHeightRef.current = h;
+          if (h <= layoutHeightRef.current) setScrollEnabled(true);
+        }}
+        onLayout={(e) => {
+          layoutHeightRef.current = e.nativeEvent.layout.height;
+          if (contentHeightRef.current > 0 && contentHeightRef.current <= e.nativeEvent.layout.height) setScrollEnabled(true);
+        }}
         accessibilityLabel="Disclaimer text, scroll to read"
       >
         <Text style={styles.disclaimerText}>{DISCLAIMER}</Text>

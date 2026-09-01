@@ -51,6 +51,13 @@ export default function HomeScreen() {
         screen: 'AilmentDetail',
         params: { ailmentId: mood.ailmentId },
       });
+    } else if (mood.label === 'Hurty') {
+      navigation.navigate('Explore', {
+        screen: 'CategoryBrowser',
+        params: { initialCategory: 'physical' },
+      });
+    } else if (mood.label === 'Happy') {
+      navigation.navigate('Explore', { screen: 'CategoryBrowser' });
     }
   }
 
@@ -152,6 +159,16 @@ export default function HomeScreen() {
           <Text style={styles.quickLabel}>Bedtime</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Explore All */}
+      <TouchableOpacity
+        style={styles.exploreAllBtn}
+        onPress={() => navigation.navigate('Explore', { screen: 'CategoryBrowser' })}
+        accessibilityRole="button"
+        accessibilityLabel="Explore all yoga sessions"
+      >
+        <Text style={styles.exploreAllText}>Explore All Yoga Sessions →</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -184,4 +201,6 @@ const styles = StyleSheet.create({
   quickTile: { flex: 1, height: 72, backgroundColor: '#FFFFFF', borderRadius: 16, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2, gap: 4 },
   quickIcon: { fontSize: 24 },
   quickLabel: { fontSize: 14, fontWeight: '600', color: '#1C1C2E' },
+  exploreAllBtn: { marginHorizontal: 20, marginTop: 16, borderWidth: 2, borderColor: '#F9A825', borderRadius: 100, paddingVertical: 14, alignItems: 'center' },
+  exploreAllText: { fontSize: 16, fontWeight: '700', color: '#F9A825' },
 });

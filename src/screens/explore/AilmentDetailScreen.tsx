@@ -11,6 +11,8 @@ import { buildSession } from '../../utils/buildSession';
 import { poseName } from '../../utils/poseNameUtils';
 import { useAgeTheme } from '../../features/age-adaptive/useAgeTheme';
 import { useAgeContent } from '../../features/age-adaptive/useAgeContent';
+import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
 
 type Nav = NativeStackNavigationProp<any>;
 type Route = RouteProp<{ AilmentDetail: { ailmentId: string } }, 'AilmentDetail'>;
@@ -137,25 +139,25 @@ export default function AilmentDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFBF2' },
+  container: { flex: 1, backgroundColor: colors.bg.primary },
   notFound: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  notFoundText: { fontSize: 18, color: '#1C1C2E' },
+  notFoundText: { fontSize: 18, color: colors.text.primary },
   backLink: { fontSize: 16, color: '#42A5F5', textDecorationLine: 'underline' },
   backBtn: { position: 'absolute', top: 16, left: 16, zIndex: 10, padding: 8 },
-  backBtnText: { fontSize: 18, color: '#FFFFFF', fontWeight: '600' },
+  backBtnText: { fontSize: 18, color: colors.bg.card, fontWeight: '600' },
   hero: { height: 200, alignItems: 'center', justifyContent: 'center' },
   heroEmoji: { fontSize: 80 },
-  content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 48 },
-  title: { fontSize: 28, fontWeight: '700', color: '#1C1C2E', marginBottom: 4 },
-  subtitle: { fontSize: 16, color: '#7B7B99', marginBottom: 12 },
+  content: { paddingHorizontal: spacing.screenPaddingH, paddingTop: 16, paddingBottom: 48 },
+  title: { fontSize: 28, fontWeight: '700', color: colors.text.primary, marginBottom: 4 },
+  subtitle: { fontSize: 16, color: colors.text.muted, marginBottom: 12 },
   chips: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 16 },
-  chip: { backgroundColor: '#F0F0F8', borderRadius: 100, paddingHorizontal: 12, paddingVertical: 6 },
-  chipText: { fontSize: 13, fontWeight: '600', color: '#3D3D56' },
-  infoCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
-  infoLabel: { fontSize: 13, fontWeight: '700', color: '#F9A825', marginBottom: 6 },
-  infoText: { fontSize: 16, color: '#3D3D56', lineHeight: 24 },
-  sectionLabel: { fontSize: 18, fontWeight: '700', color: '#1C1C2E', marginBottom: 8, marginTop: 8 },
+  chip: { backgroundColor: '#F0F0F8', borderRadius: spacing.buttonRadius, paddingHorizontal: 12, paddingVertical: 6 },
+  chipText: { fontSize: 13, fontWeight: '600', color: colors.text.body },
+  infoCard: { backgroundColor: colors.bg.card, borderRadius: 16, padding: spacing.cardPadding, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
+  infoLabel: { fontSize: 13, fontWeight: '700', color: colors.primary.sunshine, marginBottom: 6 },
+  infoText: { fontSize: 16, color: colors.text.body, lineHeight: 24 },
+  sectionLabel: { fontSize: 18, fontWeight: '700', color: colors.text.primary, marginBottom: 8, marginTop: 8 },
   poseScroll: { gap: 12, paddingBottom: 4, paddingRight: 4 },
-  startBtn: { backgroundColor: '#F9A825', borderRadius: 100, paddingVertical: 18, alignItems: 'center', marginTop: 24, minHeight: 56, justifyContent: 'center', shadowColor: '#F9A825', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 4 },
-  startBtnText: { fontSize: 18, fontWeight: '700', color: '#1C1C2E' },
+  startBtn: { backgroundColor: colors.primary.sunshine, borderRadius: spacing.buttonRadius, paddingVertical: 18, alignItems: 'center', marginTop: 24, minHeight: spacing.minTouchTarget, justifyContent: 'center', shadowColor: colors.primary.sunshine, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 4 },
+  startBtnText: { fontSize: 18, fontWeight: '700', color: colors.text.primary },
 });

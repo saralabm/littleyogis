@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { onboardingDraft } from './onboardingDraft';
+import { loadDraft, saveDraft } from './onboardingDraft';
 
 type Nav = NativeStackNavigationProp<any>;
 
@@ -16,9 +16,15 @@ export default function ChildProfileScreen() {
   const [childName, setChildName] = useState('');
   const [selectedColor, setSelectedColor] = useState(COLORS[0].hex);
 
+  useEffect(() => {
+    loadDraft().then((draft) => {
+      if (draft.childName) setChildName(draft.childName);
+      if (draft.yogiColor) setSelectedColor(draft.yogiColor);
+    }).catch(() => {});
+  }, []);
+
   function handleContinue() {
-    onboardingDraft.childName = childName.trim();
-    onboardingDraft.yogiColor = selectedColor;
+    saveDraft({ childName: childName.trim(), yogiColor: selectedColor }).catch(() => {});
     navigation.navigate('Disclaimer');
   }
 

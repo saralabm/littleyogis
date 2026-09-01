@@ -1,5 +1,12 @@
 {
   "enabledPlugins": {
     "expo@claude-plugins-official": true
+  },
+
+  "mcpServers": {
+    "lovable": {
+      "type": "http",
+      "url": "https://mcp.lovable.dev"
+    }
   }
 }

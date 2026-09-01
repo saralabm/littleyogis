@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { onboardingDraft } from './onboardingDraft';
+import { saveDraft } from './onboardingDraft';
 import type { AgeTier } from '../../types';
+import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
 
 type Nav = NativeStackNavigationProp<any>;
 
@@ -19,13 +21,13 @@ export default function AgeTierScreen() {
 
   function handleContinue() {
     if (!selected) return;
-    onboardingDraft.tier = selected;
+    saveDraft({ tier: selected }).catch(() => {});
     navigation.navigate('ChildProfile');
   }
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFBF2" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.bg.primary} />
       <ScrollView contentContainerStyle={styles.scroll} bounces={false}>
         <Text style={styles.heading}>How old is your child?</Text>
         <Text style={styles.subheading}>Choose the right level for them</Text>
@@ -68,19 +70,19 @@ export default function AgeTierScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFBF2' },
-  scroll: { paddingHorizontal: 20, paddingTop: 40, paddingBottom: 40 },
-  heading: { fontSize: 28, fontWeight: '700', color: '#1C1C2E', marginBottom: 8 },
-  subheading: { fontSize: 16, color: '#7B7B99', marginBottom: 32 },
+  safe: { flex: 1, backgroundColor: colors.bg.primary },
+  scroll: { paddingHorizontal: spacing.screenPaddingH, paddingTop: 40, paddingBottom: 40 },
+  heading: { fontSize: 28, fontWeight: '700', color: colors.text.primary, marginBottom: 8 },
+  subheading: { fontSize: 16, color: colors.text.muted, marginBottom: 32 },
   cards: { gap: 12 },
-  card: { height: 80, backgroundColor: '#FFFFFF', borderRadius: 100, borderWidth: 1.5, borderColor: '#E8E8EE', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, gap: 14 },
+  card: { height: 80, backgroundColor: colors.bg.card, borderRadius: spacing.buttonRadius, borderWidth: 1.5, borderColor: '#E8E8EE', flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.screenPaddingH, gap: 14 },
   cardEmoji: { fontSize: 28 },
   cardBody: { flex: 1 },
-  cardAge: { fontSize: 12, fontWeight: '600', color: '#7B7B99', textTransform: 'uppercase' },
-  cardLabel: { fontSize: 17, fontWeight: '700', color: '#1C1C2E' },
+  cardAge: { fontSize: 12, fontWeight: '600', color: colors.text.muted, textTransform: 'uppercase' },
+  cardLabel: { fontSize: 17, fontWeight: '700', color: colors.text.primary },
   check: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  checkMark: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
-  cta: { backgroundColor: '#F9A825', borderRadius: 100, paddingVertical: 18, alignItems: 'center', marginTop: 32, minHeight: 56, justifyContent: 'center' },
+  checkMark: { color: colors.bg.card, fontSize: 14, fontWeight: '700' },
+  cta: { backgroundColor: colors.primary.sunshine, borderRadius: spacing.buttonRadius, paddingVertical: 18, alignItems: 'center', marginTop: 32, minHeight: spacing.minTouchTarget, justifyContent: 'center' },
   ctaDisabled: { opacity: 0.45 },
-  ctaText: { fontSize: 18, fontWeight: '700', color: '#1C1C2E' },
+  ctaText: { fontSize: 18, fontWeight: '700', color: colors.text.primary },
 });
